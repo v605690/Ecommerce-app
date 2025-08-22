@@ -52,9 +52,8 @@ public class CategoryServiceImpl implements CategoryService{
        // Saves the new category to the database using JPA save() method
        Category savedCategory = categoryRepository.save(category);
        // Converts the saved entity back to a DTO for the response
-       CategoryDTO savedCategoryDTO = modelMapper.map(savedCategory, CategoryDTO.class);
-       // ensure the returned object includes auto-gen ID and other DB fields
-       return savedCategoryDTO;
+        // ensure the returned object includes auto-gen ID and other DB fields
+       return modelMapper.map(savedCategory, CategoryDTO.class);
     }
 
     @Override
