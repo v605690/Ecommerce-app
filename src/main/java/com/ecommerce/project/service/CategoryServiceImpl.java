@@ -40,13 +40,21 @@ public class CategoryServiceImpl implements CategoryService{
     }
 
     @Override
-    public void createCategory(Category category) {
-      //  category.setCategoryId(nextId++);
-       Category savedCategory = categoryRepository.findByCategoryName(category.getCategoryName());
-       if (savedCategory != null) {
-           throw new APIException("Category with the name " + category.getCategoryName() + " already exists !!!");
+      // Takes a CategoryDTO as input and returns a CategoryDTO representing the newly created category.
+    public CategoryDTO createCategory(CategoryDTO categoryDTO) {
+        // Uses ModelMapper to convert the incoming CategoryDTO into a Category entity
+        Category category = modelMapper.map(categoryDTO, Category.class);
+        // Checks if a category with the same name already exist in DB, if duplicate found, throws a exception
+       Category categoryFromDB = categoryRepository.findByCategoryName(categoryDTO.getCategoryName());
+       if (categoryFromDB != null) {
+           throw new APIException("Category with the name " + categoryDTO.getCategoryName() + " already exists !!!");
        }
-        categoryRepository.save(category);
+       // Saves the new category to the database using JPA save() method
+       Category savedCategory = categoryRepository.save(category);
+       // Converts the saved entity back to a DTO for the response
+       CategoryDTO savedCategoryDTO = modelMapper.map(savedCategory, CategoryDTO.class);
+       // ensure the returned object includes auto-gen ID and other DB fields
+       return savedCategoryDTO;
     }
 
     @Override

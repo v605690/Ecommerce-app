@@ -21,7 +21,7 @@ public class CategoryController {
 
     @RequestMapping(value = "/public/categories", method = RequestMethod.GET)
    //@GetMapping("/public/categories")
-    private ResponseEntity<CategoryResponse> getAllCategories() {
+    public ResponseEntity<CategoryResponse> getAllCategories() {
         CategoryResponse categoryResponse = categoryService.getAllCategories();
         return new ResponseEntity<>(categoryResponse, HttpStatus.OK);
     }
