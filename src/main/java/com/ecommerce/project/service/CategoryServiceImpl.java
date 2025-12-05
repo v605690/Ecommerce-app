@@ -36,8 +36,9 @@ public class CategoryServiceImpl implements CategoryService{
 
         Pageable pageDetails = PageRequest.of(pageNumber, pageSize, sortByAndOrder);
         Page<Category> categoryPage = categoryRepository.findAll(pageDetails);
-
+        // Getting the list of categories
         List<Category> categories = categoryPage.getContent();
+        // validating the categories
         if (categories.isEmpty()) {
             throw new APIException("Category does not exist");
         }
