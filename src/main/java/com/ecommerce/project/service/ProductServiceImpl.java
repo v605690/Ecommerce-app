@@ -121,6 +121,10 @@ public class ProductServiceImpl implements ProductService {
         // First, get all products from repo
         List<Product> products = pageProducts.getContent();
 
+        if(products.isEmpty()) {
+            throw new APIException(category.getCategoryName() + " category does not have any products");
+        }
+
         // First, get all products from repo that will take a category
         // Second, use productDTO since ProductResponse is a ProductDTO list and use stream to convert products to a ProductDTO
         List<ProductDTO> productDTOS = products.stream().map((element) -> modelMapper.map(element, ProductDTO.class))
@@ -138,9 +142,22 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     public ProductResponse searchProductByKeyword(String keyword, Integer pageNumber, Integer pageSize, String sortBy, String sortOrder) {
-        List<Product> products = productRepository.findByProductNameLikeIgnoreCase('%' + keyword + '%');
+
+        Sort sortByAndOrder = sortOrder.equalsIgnoreCase("asc")
+                ? Sort.by(sortBy).ascending()
+                : Sort.by(sortBy).descending();
+
+        Pageable pageDetails = PageRequest.of(pageNumber, pageSize, sortByAndOrder);
+        Page<Product> pageProducts = productRepository.findByProductNameLikeIgnoreCase('%' + keyword + '%', pageDetails);
+
+        List<Product> products = pageProducts.getContent();
         List<ProductDTO> productDTOS = products.stream().map((element) -> modelMapper.map(element, ProductDTO.class))
                 .toList();
+
+        if(products.isEmpty()) {
+            throw new APIException("Products not found with keyword: " + keyword);
+        }
+
         ProductResponse productResponse = new ProductResponse();
         productResponse.setContent(productDTOS);
         return productResponse;
