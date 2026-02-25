@@ -22,8 +22,10 @@ public class UserDetailsImpl implements UserDetails {
     private Long id;
     private String username;
     private String email;
+
     @JsonIgnore
     private String password;
+
     private Collection<? extends GrantedAuthority> authorities;
 
     public UserDetailsImpl(Long id, String username, String email, String password, Collection<? extends GrantedAuthority> authorities) {
@@ -33,7 +35,7 @@ public class UserDetailsImpl implements UserDetails {
         this.password = password;
         this.authorities = authorities;
     }
-
+    // builder method to convert a custom User object into UserDetailImpl service
     public static UserDetailsImpl build(User user) {
         List<GrantedAuthority> authorities = user.getRoles().stream()
                 .map(role -> new SimpleGrantedAuthority(role.getRoleName().name()))

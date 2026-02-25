@@ -46,5 +46,4 @@ public class Address {
     @ToString.Exclude
     @ManyToMany(mappedBy = "addresses")
     private List<User> users = new ArrayList<>();
-
 }
