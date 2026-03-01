@@ -24,12 +24,14 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.*;
 import java.util.stream.Collectors;
 
 @RestController
+@RequestMapping("/api/auth")
 public class AuthController {
 
     @Autowired
@@ -90,6 +92,7 @@ public class AuthController {
 
     @PostMapping("/signup")
     public ResponseEntity<?> registerUser(@Valid @RequestBody SignupRequest signupRequest) {
+        // validate user
         if (userRepository.existsByUsername(signupRequest.getUsername())) {
             return ResponseEntity
                     .badRequest()
@@ -100,11 +103,13 @@ public class AuthController {
                     .badRequest()
                     .body(new MessageResponse("Error: Email is already taken!"));
         }
+        // we are starting to save the user
         User user = new User(
                 signupRequest.getUsername(),
                 signupRequest.getEmail(),
                 encoder.encode(signupRequest.getPassword())
         );
+        // To save the user above, we need to map the roles below
 
         // get the roles from the signup request
         Set<String> strRoles = signupRequest.getRole();
@@ -119,13 +124,26 @@ public class AuthController {
             strRoles.forEach(role -> {
                 switch (role) {
                     case "admin":
+                        Role adminRole = roleRepository.findByRoleName(AppRole.ROLE_ADMIN)
+                                .orElseThrow(() -> new RuntimeException("Error: Role is not found"));
+                        roles.add(adminRole);
                         break;
                     case  "seller":
+                        Role sellerRole = roleRepository.findByRoleName(AppRole.ROLE_SELLER)
+                                .orElseThrow(() -> new RuntimeException("Error: Role is not found"));
+                        roles.add(sellerRole);
                         break;
-                    default:     
+                    default:
+                        // the below logic states if other userRole is used then default to userRole
+                        Role userRole = roleRepository.findByRoleName(AppRole.ROLE_USER)
+                                .orElseThrow(() -> new RuntimeException("Error: Role is not found"));
+                        roles.add(userRole);
                 }
             });
         }
+            // finally saving the user after mapping the user above
+            user.setRoles(roles);
+            userRepository.save(user);
+            return ResponseEntity.ok(new MessageResponse("User registered successfully!!"));
     }
-
 }
