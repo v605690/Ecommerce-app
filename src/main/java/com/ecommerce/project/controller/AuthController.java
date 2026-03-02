@@ -14,7 +14,9 @@ import com.ecommerce.project.security.response.UserInfoResponse;
 import com.ecommerce.project.security.services.UserDetailsImpl;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -78,16 +80,19 @@ public class AuthController {
 
         // assert userDetails != null;
         // Get the jwtToken
-        String token = jwtUtils.generateTokenFromUsername(userDetails);
+        //  String token = jwtUtils.generateTokenFromUsername(userDetails);
+        ResponseCookie jwtCookie = jwtUtils.generateJwtCookie(userDetails);
         // Get the roles and convert to stream
         List<String> roles = userDetails.getAuthorities().stream()
                 // get every item from the list not the grantedAuthority
                 .map(item -> item.getAuthority())
                 .collect(Collectors.toList());
 
-        UserInfoResponse response = new UserInfoResponse(userDetails.getId(), token, userDetails.getUsername(), roles);
+        UserInfoResponse response = new UserInfoResponse(userDetails.getId(), userDetails.getUsername(), roles);
 
-        return new ResponseEntity<Object>(response, HttpStatus.OK);
+        return ResponseEntity.ok().header(HttpHeaders.SET_COOKIE,
+                jwtCookie.toString())
+                .body(response);
     }
 
     @PostMapping("/signup")
