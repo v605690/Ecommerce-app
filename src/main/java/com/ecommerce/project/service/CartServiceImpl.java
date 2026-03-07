@@ -13,6 +13,7 @@ import com.ecommerce.project.repositories.ProductRepository;
 import com.ecommerce.project.util.AuthUtil;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.method.P;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -103,6 +104,32 @@ public class CartServiceImpl implements CartService {
 
         cartDTO.setProducts(productDTOS);
         return cartDTO;
+    }
+
+    @Override
+    public List<CartDTO> getAllCarts() {
+        // get the standard list of carts first
+        List<Cart> carts = cartRepository.findAll();
+
+        // check if the cart is empty first
+        if (carts.size() == 0) {
+            throw new APIException("No cart exist");
+        }
+        // if the cart is not empty, transform the standard cart list to a CartDTO list
+        List<CartDTO> cartDTOS = carts.stream()
+                .map(cart -> {
+                   CartDTO cartDTO = modelMapper.map(cart, CartDTO.class);
+                    // CartDTO has ProductDTO where the products are received from CartItem.
+                    // We're getting the cart-items, converting into streams, also we are using a map to get every product and transforming
+                    // into ProductDTO list.
+                   List<ProductDTO> productDTOS = cart.getCartItems().stream()
+                           .map(p -> modelMapper.map(p.getProduct(), ProductDTO.class))
+                           .toList();
+                   // set the products and return cartDTO
+                   cartDTO.setProducts(productDTOS);
+                   return cartDTO;
+                }).toList();
+        return cartDTOS;
     }
 
     private Cart createCart() {
